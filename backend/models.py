@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base, SessionLocal
+from backend.database import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -13,16 +14,19 @@ class User(Base):
 
     invoices = relationship("Invoice", back_populates="user")
 
+
 class Invoice(Base):
     __tablename__ = "invoices"
 
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, index=True, nullable=False)
     upload_time = Column(DateTime, index=True, default=datetime.utcnow)
-    status = Column(String, nullable=False, default = "uploaded")
+    status = Column(String, nullable=False, default="uploaded")
     uploaded_by = Column(Integer, ForeignKey("users.id"), index=True)
 
     user = relationship("User", back_populates="invoices")
+    data = relationship("InvoiceData", back_populates="invoice")
+
 
 class InvoiceData(Base):
     __tablename__ = "invoice_data"
@@ -36,13 +40,3 @@ class InvoiceData(Base):
     extracted_at = Column(DateTime, default=datetime.utcnow)
 
     invoice = relationship("Invoice", back_populates="data")
-
-Invoice.data = relationship("InvoiceData", back_populates="invoice")
-
-
-db = SessionLocal()
-
-# Example: get all invoices for user 1
-user = db.get(User, 1)
-for invoice in user.invoices:
-    print(invoice.filename)
